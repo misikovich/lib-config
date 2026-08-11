@@ -6,7 +6,7 @@ Tiny JSON config manager for Node. You describe your config with a [zod](https:/
 
 ```ts
 import { z } from "zod"
-import { config_init } from "@ss1/lib-config"
+import { config_init } from "@misikovich/lib-config"
 
 const CONFIG = config_init("app.json", z.object({
     HOST: z.string().default("0.0.0.0"),

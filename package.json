@@ -1,5 +1,5 @@
 {
-  "name": "@ss1/lib-config",
+  "name": "@misikovich/lib-config",
   "version": "0.1.0",
   "description": "TypeScript application configuration library.",
   "type": "module",
@@ -28,6 +28,7 @@
     "json"
   ],
   "license": "MIT",
+  "author": "misikovich",
   "devDependencies": {
     "@types/node": "^26.2.0",
     "typescript": "^7.0.2"

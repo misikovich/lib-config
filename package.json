@@ -1,0 +1,34 @@
+{
+  "name": "@ss1/lib-config",
+  "version": "0.1.0",
+  "description": "TypeScript application configuration library.",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "config",
+    "configuration",
+    "typescript",
+    "json"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

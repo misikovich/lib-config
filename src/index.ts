@@ -1,11 +1,13 @@
 import { readFileSync, writeFileSync } from "node:fs"
 import { z } from "zod"
 
+const LOGTAG = "[config]"
+
 function config_field_default(key: string, field: z.ZodType): unknown {
     try {
         return field.parse(undefined)
     } catch {
-        throw new Error(`config: entry "${key}" is missing/invalid and has no default`)
+        throw new Error(`${LOGTAG} entry "${key}" is missing/invalid and has no default`)
     }
 }
 
@@ -14,13 +16,13 @@ function config_validate(schema: z.ZodObject, j: Record<string, unknown>): Recor
 
     for (const key of Object.keys(j)) {
         if (!(key in schema.shape))
-            console.warn(`config: unknown entry "${key}" removed`)
+            console.warn(`${LOGTAG} unknown entry "${key}" removed`)
     }
 
     for (const [key, field] of Object.entries(schema.shape)) {
         if (!(key in j)) {
             const def = config_field_default(key, field)
-            console.warn(`config: missing entry "${key}", using default ${def}`)
+            console.warn(`${LOGTAG} missing entry "${key}", using default ${def}`)
             out[key] = def
             continue
         }
@@ -29,7 +31,7 @@ function config_validate(schema: z.ZodObject, j: Record<string, unknown>): Recor
             out[key] = r.data
         } else {
             const def = config_field_default(key, field)
-            console.warn(`config: bad value for "${key}" (${r.error.issues[0]?.message}), using default ${def}`)
+            console.warn(`${LOGTAG} bad value for "${key}" (${r.error.issues[0]?.message}), using default ${def}`)
             out[key] = def
         }
     }
@@ -46,7 +48,7 @@ export function config_init<S extends z.ZodObject>(path: string, schema: S, forc
     try {
         f = readFileSync(path, "utf8")
     } catch {
-        console.warn(`config: "${path}" not found, creating with defaults`)
+        console.warn(`${LOGTAG} "${path}" not found, creating with defaults`)
     }
 
     let j: Record<string, unknown> = {}
@@ -58,8 +60,8 @@ export function config_init<S extends z.ZodObject>(path: string, schema: S, forc
             j = parsed as Record<string, unknown>
         } catch (error) {
             if (!force_overwrite)
-                throw new Error(`config: "${path}" is not valid JSON (${error instanceof Error ? error.message : error}), fix it manually or pass force_overwrite`)
-            console.warn(`config: "${path}" is not valid JSON, overwriting with defaults`)
+                throw new Error(`${LOGTAG} "${path}" is not valid JSON (${error instanceof Error ? error.message : error}), fix it manually or pass force_overwrite`)
+            console.warn(`${LOGTAG} "${path}" is not valid JSON, overwriting with defaults`)
         }
     }
 
@@ -73,7 +75,7 @@ export function config_init<S extends z.ZodObject>(path: string, schema: S, forc
         set(target, key, value) {
             const field = schema.shape[String(key)]
             if (!field)
-                throw new Error(`config: unknown entry "${String(key)}"`)
+                throw new Error(`${LOGTAG} unknown entry "${String(key)}"`)
             target[String(key)] = field.parse(value)
             writeFileSync(path, config_serialize(target))
             return true

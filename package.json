@@ -4,6 +4,9 @@
   "description": "TypeScript application configuration library.",
   "type": "module",
   "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "dist"
   ],

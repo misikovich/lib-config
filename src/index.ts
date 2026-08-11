@@ -20,7 +20,7 @@ function config_validate(schema: z.ZodObject, j: Record<string, unknown>): Recor
     for (const [key, field] of Object.entries(schema.shape)) {
         if (!(key in j)) {
             const def = config_field_default(key, field)
-            console.warn(`config: missing entry "${key}", using default "${def}"`)
+            console.warn(`config: missing entry "${key}", using default ${def}`)
             out[key] = def
             continue
         }
@@ -29,7 +29,7 @@ function config_validate(schema: z.ZodObject, j: Record<string, unknown>): Recor
             out[key] = r.data
         } else {
             const def = config_field_default(key, field)
-            console.warn(`config: bad value for "${key}" (${r.error.issues[0]?.message}), using default "${def}"`)
+            console.warn(`config: bad value for "${key}" (${r.error.issues[0]?.message}), using default ${def}`)
             out[key] = def
         }
     }

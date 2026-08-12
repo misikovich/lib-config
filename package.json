@@ -1,6 +1,6 @@
 {
   "name": "@misikovich/lib-config",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "TypeScript application configuration library.",
   "type": "module",
   "sideEffects": false,

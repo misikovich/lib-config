@@ -20,9 +20,9 @@ CONFIG.PORT = 3000                  // validated and saved to app.json immediate
 
 ## What it does for you
 
-**One source of truth.** The schema defines both the runtime validation and the TypeScript type — there is no separate interface to keep in sync.
+**One source of truth** The schema defines both the runtime validation and the TypeScript type — there is no separate interface to keep in sync.
 
-**Forgiving reads.** The file is validated field by field on load instead of failing on the first problem:
+**Forgiving reads** The file is validated field by field on load instead of failing on the first problem:
 
 - an unknown entry is removed with a warning
 - a missing entry falls back to its default with a warning
@@ -35,13 +35,11 @@ config: missing entry "HOST", using default
 config: bad value for "PORT" (Invalid input: expected number, received string), using default
 ```
 
-**Self-healing file.** After loading, the corrected config is written back to disk, so typos and stale keys are cleaned up on startup. A missing file is created from the defaults, with `null` placeholders for required entries that have no default. The complete template is written before an error lists the entries you need to fill in. A file with broken JSON throws with the parse error — pass `force_overwrite: true` as the third argument to rebuild it using the same template behavior.
+**Self-healing file** After loading, the corrected config is written back to disk, so typos and stale keys are cleaned up on startup. A missing file is created from the defaults, with `null` placeholders for required entries that have no default. The complete template is written before an error lists the entries you need to fill in. A file with broken JSON throws with the parse error — pass `force_overwrite: true` as the third argument to rebuild it using the same template behavior.
 
-**Live writes, at most one per second.** The returned object is a proxy: assigning to a field validates the new value against the schema (throwing on a bad one) and persists it. Use it like a plain object everywhere else.
+**Saving is rate limited** - you are free to edit the values as quick as you need, everything gets saved automatically once per 1s.
 
-Saving is rate limited — the first change is written immediately, and any further changes within the next second are coalesced into a single trailing write of the latest values. A burst of a thousand assignments costs two writes, not a thousand, and the file always catches up within a second.
-
-A pending write is flushed when the process exits normally. Signals do not run exit handlers, so if you handle `SIGINT`/`SIGTERM` yourself, flush explicitly:
+If you handle `SIGINT`/`SIGTERM` yourself, flush explicitly:
 
 ```ts
 import { config_flush } from "@misikovich/lib-config"
@@ -52,8 +50,7 @@ process.on("SIGINT", () => {
 })
 ```
 
-## Notes
+## Requirements
 
-- The config must be a flat JSON object — nested objects, arrays as roots, etc. are out of scope for now.
-- Assignments write synchronously on the leading edge and via an `unref`ed 1s timer otherwise, so a pending save never keeps the process alive. Errors from a deferred write are warned, not thrown — nothing is left to catch them.
-- Requires Node >= 20. zod v4 is the only dependency.
+- The config must be a flat JSON object.
+- Requires Node >= 20 and zod v4.

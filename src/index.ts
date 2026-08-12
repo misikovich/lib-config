@@ -11,6 +11,23 @@ function config_field_default(key: string, field: z.ZodType): unknown {
     }
 }
 
+function config_template(schema: z.ZodObject) {
+    const data: Record<string, unknown> = {}
+    const required_keys: string[] = []
+
+    for (const [key, field] of Object.entries(schema.shape)) {
+        const result = field.safeParse(undefined)
+        if (result.success) {
+            data[key] = result.data
+        } else {
+            data[key] = null
+            required_keys.push(key)
+        }
+    }
+
+    return { data, required_keys }
+}
+
 function config_validate(schema: z.ZodObject, j: Record<string, unknown>): Record<string, unknown> {
     const out: Record<string, unknown> = {}
 
@@ -51,6 +68,8 @@ export function config_init<S extends z.ZodObject>(path: string, schema: S, forc
         console.warn(`${LOGTAG} "${path}" not found, creating with defaults`)
     }
 
+    let create_template = f === undefined
+    let template_action: "created" | "rebuilt" = "created"
     let j: Record<string, unknown> = {}
     if (f !== undefined) {
         try {
@@ -62,14 +81,28 @@ export function config_init<S extends z.ZodObject>(path: string, schema: S, forc
             if (!force_overwrite)
                 throw new Error(`${LOGTAG} "${path}" is not valid JSON (${error instanceof Error ? error.message : error}), fix it manually or pass force_overwrite`)
             console.warn(`${LOGTAG} "${path}" is not valid JSON, overwriting with defaults`)
+            create_template = true
+            template_action = "rebuilt"
         }
     }
 
-    const data = config_validate(schema, j)
-
-    // self-heal: persist corrected config if it differs from what was on disk
-    if (config_serialize(data) !== f)
+    let data: Record<string, unknown>
+    if (create_template) {
+        const template = config_template(schema)
+        data = template.data
         writeFileSync(path, config_serialize(data))
+
+        if (template.required_keys.length > 0) {
+            const required_entries = template.required_keys.map((key) => `"${key}"`).join(", ")
+            throw new Error(`${LOGTAG} ${template_action} "${path}", but required entries need values: ${required_entries}. Fill them in and restart`)
+        }
+    } else {
+        data = config_validate(schema, j)
+
+        // self-heal: persist corrected config if it differs from what was on disk
+        if (config_serialize(data) !== f)
+            writeFileSync(path, config_serialize(data))
+    }
 
     return new Proxy(data, {
         set(target, key, value) {

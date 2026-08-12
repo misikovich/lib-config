@@ -27,7 +27,7 @@ CONFIG.PORT = 3000                  // validated and saved to app.json immediate
 - an unknown entry is removed with a warning
 - a missing entry falls back to its default with a warning
 - an entry with a wrong type falls back to its default with a warning
-- a missing or broken entry with **no** default throws — you can't warn away a required value
+- a missing or broken entry with **no** default throws — when creating a file, required entries are first written as `null` placeholders
 
 ```
 config: unknown entry "JUNK" removed
@@ -35,7 +35,7 @@ config: missing entry "HOST", using default
 config: bad value for "PORT" (Invalid input: expected number, received string), using default
 ```
 
-**Self-healing file.** After loading, the corrected config is written back to disk, so typos and stale keys are cleaned up on startup. A missing file is created from the defaults. A file with broken JSON throws with the parse error — pass `force_overwrite: true` as the third argument to rebuild it from defaults instead.
+**Self-healing file.** After loading, the corrected config is written back to disk, so typos and stale keys are cleaned up on startup. A missing file is created from the defaults, with `null` placeholders for required entries that have no default. The complete template is written before an error lists the entries you need to fill in. A file with broken JSON throws with the parse error — pass `force_overwrite: true` as the third argument to rebuild it using the same template behavior.
 
 **Live writes.** The returned object is a proxy: assigning to a field validates the new value against the schema (throwing on a bad one) and persists the file right away. Use it like a plain object everywhere else.
 
